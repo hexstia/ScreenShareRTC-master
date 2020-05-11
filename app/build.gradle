@@ -1,0 +1,53 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+
+    defaultConfig {
+        applicationId "fr.pchab.androidrtc"
+        minSdkVersion 23
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+    }
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
+    sourceSets.main {
+        jniLibs.srcDir 'libs'
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
+    signingConfigs {
+        debug {
+            v1SigningEnabled true
+            v2SigningEnabled true
+//            debug {
+//                storeFile file("C:/Users/wangy/Desktop/Demo.jks")
+//                storePassword '123123'
+//                keyAlias 'systemDemo'
+//                keyPassword '123123'
+//            }
+
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.android.support:appcompat-v7:28.0.0-rc02'
+    implementation 'com.github.nkzawa:socket.io-client:0.4.2'
+//    implementation files('libs/audio_device_java.jar')
+//    implementation files('libs/autobanh.jar')
+//    implementation files('libs/base_java.jar')
+//    implementation files('libs/libjingle_peerconnection.jar')
+//    implementation 'io.socket:socket.io-client:1.0.0'
+//    implementation 'org.webrtc:google-webrtc:1.0.30039'
+//    implementation 'pub.devrel:easypermissions:1.1.3'
+}
