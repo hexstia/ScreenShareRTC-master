@@ -3,8 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="fr.pchab.androidrtc"
     android:versionCode="1"
+    android:sharedUserId="android.uid.system"
     android:versionName="1.0">
-    <!--android:sharedUserId="android.uid.system"-->
+
     <uses-feature android:name="android.hardware.camera" />
     <uses-feature android:name="android.hardware.camera.autofocus" />
 
@@ -49,12 +50,15 @@
     <application android:label="@string/app_name"  android:allowBackup="true">
         <activity
             android:name="fr.pchab.androidrtc.RtcActivity"
+            android:theme="@style/translucent"
             android:excludeFromRecents="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
+        <service android:name=".RtcService"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MainService" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </service>
     </application>
 </manifest>

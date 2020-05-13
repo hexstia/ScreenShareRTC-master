@@ -44,14 +44,15 @@ import java.util.LinkedList;
 
 import android.content.Context;
 
-import com.github.nkzawa.emitter.Emitter;
-import com.github.nkzawa.socketio.client.IO;
-import com.github.nkzawa.socketio.client.Socket;
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 
 public class WebRtcClient {
 
     public static final String VIDEO_TRACK_ID = "ARDAMSv0";
-    private final static String TAG = "WebRtcClient";
+    private final static String TAG = "RtcActivity";
     private final static int MAX_PEER = 2;
     private boolean[] endPoints = new boolean[MAX_PEER];
     private PeerConnectionFactory factory;
@@ -86,7 +87,7 @@ public class WebRtcClient {
 
     public class CreateOfferCommand implements Command {
         public void execute(String peerId, JSONObject payload) throws JSONException {
-            Log.d(TAG, "CreateOfferCommand");
+            Log.d(TAG, " WebRtcClient CreateOfferCommand");
             Peer peer = peers.get(peerId);
             peer.pc.createOffer(peer, mPeerConnConstraints);
 //            sendMessage("r0Z049NKJF2ZCIhRAAAZ","offer",new JSONObject());
@@ -95,7 +96,7 @@ public class WebRtcClient {
 
     public class CreateAnswerCommand implements Command {
         public void execute(String peerId, JSONObject payload) throws JSONException {
-            Log.d(TAG, "CreateAnswerCommand");
+            Log.d(TAG, "WebRtcClient CreateAnswerCommand");
             Peer peer = peers.get(peerId);
             SessionDescription sdp = new SessionDescription(
                     SessionDescription.Type.fromCanonicalForm(payload.optString("type")),
@@ -108,7 +109,7 @@ public class WebRtcClient {
 
     public class SetRemoteSDPCommand implements Command {
         public void execute(String peerId, JSONObject payload) throws JSONException {
-            Log.d(TAG, "SetRemoteSDPCommand");
+            Log.d(TAG, "WebRtcClient SetRemoteSDPCommand");
             Peer peer = peers.get(peerId);
             SessionDescription sdp = new SessionDescription(
                     SessionDescription.Type.fromCanonicalForm(payload.optString("type")),
@@ -120,7 +121,7 @@ public class WebRtcClient {
 
     public class AddIceCandidateCommand implements Command {
         public void execute(String peerId, JSONObject payload) throws JSONException {
-            Log.d(TAG, "AddIceCandidateCommand");
+            Log.d(TAG, "WebRtcClient AddIceCandidateCommand");
             PeerConnection pc = peers.get(peerId).pc;
             if (pc.getRemoteDescription() != null) {
                 IceCandidate candidate = new IceCandidate(
@@ -147,7 +148,7 @@ public class WebRtcClient {
         message.put("type", type);
         message.put("payload", payload);
         mSocket.emit("message", message);
-        Log.d(TAG, "socket send " + type + " to " + to + " payload:" + payload);
+        Log.d(TAG, "WebRtcClient socket send " + type + " to " + to + " payload:" + payload);
     }
 
     public class MessageHandler {
@@ -170,7 +171,7 @@ public class WebRtcClient {
 //                    JSONObject data = new JSONObject(info);
                     String from = data.optString("from");
                     String type = data.optString("type");
-                    Log.d(TAG, "socket received " + type + " from " + from);
+                    Log.d(TAG, "WebRtcClient socket received " + type + " from " + from);
                     JSONObject payload = null;
                     if (!type.equals("init")) {
                         payload = data.optJSONObject("payload");
@@ -200,9 +201,11 @@ public class WebRtcClient {
             @Override
             public void call(Object... args) {
                 String id = (String) args[0];
+                Log.i(TAG,"WebRtcClient mListener.onReady(id)");
                 mListener.onReady(id);
+                Log.i(TAG,"WebRtcClient  mListener.onStatusChanged(READY)");
                 mListener.onStatusChanged("READY");
-                Log.d(TAG, "socket onId " + id);
+                Log.d(TAG, "WebRtcClient socket onId " + id);
             }
         };
     }
@@ -219,7 +222,7 @@ public class WebRtcClient {
                 JSONObject payload = new JSONObject();
                 payload.put("type", sdp.type.canonicalForm());
                 payload.put("sdp", sdp.description);
-                Log.d(TAG, "onCreateSuccess");
+                Log.d(TAG, "WebRtcClient onCreateSuccess");
                 sendMessage(id, sdp.type.canonicalForm(), payload);
                 pc.setLocalDescription(Peer.this, sdp);
             } catch (JSONException e) {
@@ -283,7 +286,7 @@ public class WebRtcClient {
 
         @Override
         public void onAddStream(MediaStream mediaStream) {
-            Log.d(TAG, "onAddStream " + mediaStream.label());
+            Log.d(TAG, "WebRtcClient onAddStream " + mediaStream.label());
             // remote streams are displayed from 1 to MAX_PEER (0 is localStream)
 //            mediaStream.videoTracks.get(0).addRenderer(new VideoRenderer(mRemoteRender));
 //            mListener.onAddRemoteStream(mediaStream, endPoint + 1);
@@ -291,7 +294,7 @@ public class WebRtcClient {
 
         @Override
         public void onRemoveStream(MediaStream mediaStream) {
-            Log.d(TAG, "onRemoveStream " + mediaStream.label());
+            Log.d(TAG, "WebRtcClient onRemoveStream " + mediaStream.label());
             removePeer(id);
         }
 
@@ -305,7 +308,7 @@ public class WebRtcClient {
         }
 
         public Peer(String id, int endPoint) {
-            Log.d(TAG, "new Peer: " + id + " " + endPoint);
+            Log.d(TAG, "WebRtcClient new Peer: " + id + " " + endPoint);
             this.pc = factory.createPeerConnection(iceServers, mPeerConnConstraints, this);
             this.id = id;
             this.endPoint = endPoint;
@@ -337,35 +340,36 @@ public class WebRtcClient {
                 params.videoCodecHwAcceleration);
         factory = new PeerConnectionFactory(null);
 //        String host = "https://" + context.getString(R.string.host) + ":" + context.getString(R.string.port) + "/";
+
         String host = RtcActivity.host;
+        Log.i("TAG","host :"+host);
         try {
             mSocket = IO.socket(host);
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-        mSocket.on("id", messageHandler.onId);
+        mSocket.on("id", messageHandler.onId); //id 的监听的事情
         mSocket.on("message", messageHandler.onMessage);
-        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+        mSocket.on(Socket.EVENT_CONNECT, new Emitter.Listener() { //回调监听 连接
             @Override
             public void call(Object... args) {
-                Log.d(TAG, "socket state connect");
+                Log.d(TAG, "WebRtcClient socket state connect");
             }
         });
-        mSocket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {
+        mSocket.on(Socket.EVENT_DISCONNECT, new Emitter.Listener() {//回调监听 关闭连接
             @Override
             public void call(Object... args) {
-                Log.d(TAG, "socket state disconnect");
+                Log.d(TAG, "WebRtcClient socket state disconnect");
             }
         });
-        mSocket.on(Socket.EVENT_ERROR, new Emitter.Listener() {
+        mSocket.on(Socket.EVENT_ERROR, new Emitter.Listener() {//回调监听 错误
             @Override
             public void call(Object... args) {
-                Log.d(TAG, "socket state error");
+                Log.d(TAG, "WebRtcClient socket state error");
             }
         });
         mSocket.connect();
-        Log.d(TAG, "socket start connect");
-
+        Log.d(TAG, "WebRtcClient socket start connect");
         iceServers.add(new PeerConnection.IceServer("stun:23.21.150.121"));
         iceServers.add(new PeerConnection.IceServer("stun:stun.l.google.com:19302"));
 
@@ -378,7 +382,7 @@ public class WebRtcClient {
     /**
      * Call this method in Activity.onDestroy()
      */
-    public void destroy() {
+    public void onDestroy() {
         for (Peer peer : peers.values()) {
             peer.pc.dispose();
         }
@@ -388,8 +392,15 @@ public class WebRtcClient {
         if (mVideoSource != null) {
             mVideoSource.dispose();
         }
-//        mSocket.disconnect();
-//        mSocket.close();
+        if(videoCapturer!=null){
+            try {
+                videoCapturer.stopCapture();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        mSocket.disconnect();
+        mSocket.close();
     }
 
     private int findEndPoint() {
@@ -406,7 +417,20 @@ public class WebRtcClient {
      * @param name mSocket name
      */
     public void start(String name) {
-        initScreenCapturStream();
+        Log.i(TAG,"WebRtcClient initScreenCapturStream()");
+        initScreenCapturStream();//开启视频流
+        //开启socket-io 通道
+        /*
+        try {
+            JSONObject message = new JSONObject();
+            message.put("name", name);
+            mSocket.emit("readyToStream", message);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        */
+    }
+    public void socketstart(String name){
         try {
             JSONObject message = new JSONObject();
             message.put("name", name);
@@ -422,10 +446,13 @@ public class WebRtcClient {
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight", Integer.toString(mPeerConnParams.videoHeight)));
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxWidth", Integer.toString(mPeerConnParams.videoWidth)));
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxFrameRate", Integer.toString(mPeerConnParams.videoFps)));
-        videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("minFrameRate", Integer.toString(mPeerConnParams.videoFps)));
 
 //        VideoCapturer capturer = createScreenCapturer();
         mVideoSource = factory.createVideoSource(videoCapturer);
+        Log.i(TAG,"startCapture()");
+        Log.i(TAG,"mPeerConnParams.videoWidth"+mPeerConnParams.videoWidth);
+        Log.i(TAG,"mPeerConnParams.videoHeight"+mPeerConnParams.videoHeight);
+        Log.i(TAG,"mPeerConnParams.videoFps"+mPeerConnParams.videoFps);
         videoCapturer.startCapture(mPeerConnParams.videoWidth, mPeerConnParams.videoHeight, mPeerConnParams.videoFps);
         VideoTrack localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource);
         localVideoTrack.setEnabled(true);

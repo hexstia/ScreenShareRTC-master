@@ -13,9 +13,12 @@ import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjection.Callback;
 import android.media.projection.MediaProjectionManager;
 import android.os.Handler;
+import android.util.Log;
 import android.view.Surface;
 
 import org.webrtc.SurfaceTextureHelper.OnTextureFrameAvailableListener;
+
+import fr.pchab.androidrtc.RtcActivity;
 
 @TargetApi(21)
 public class ScreenCapturerAndroid implements VideoCapturer, OnTextureFrameAvailableListener {
@@ -60,6 +63,21 @@ public class ScreenCapturerAndroid implements VideoCapturer, OnTextureFrameAvail
     }
 
     public synchronized void startCapture(int width, int height, int ignoredFramerate) {
+        //hexstia
+        /**
+         *     java.lang.IllegalStateException: Cannot start already started MediaProjection
+         *         at android.os.Parcel.readException(Parcel.java:2013)
+         *         at android.os.Parcel.readException(Parcel.java:1951)
+         *         at android.media.projection.IMediaProjection$Stub$Proxy.start(IMediaProjection.java:140)
+         *         at android.media.projection.MediaProjection.<init>(MediaProjection.java:59)
+         *         at android.media.projection.MediaProjectionManager.getMediaProjection(MediaProjectionManager.java:97)
+         *         at org.webrtc.ScreenCapturerAndroid.startCapture(ScreenCapturerAndroid.java:71)
+         *         at fr.pchab.androidrtc.WebRtcClient.initScreenCapturStream(WebRtcClient.java:447)
+         *         at fr.pchab.androidrtc.WebRtcClient.start(WebRtcClient.java:412)
+         *         at fr.pchab.androidrtc.RtcActivity.onReady(RtcActivity.java:218)
+         *         at fr.pchab.androidrtc.WebRtcClient$MessageHandler$2.call(WebRtcClient.java:205)
+         */
+        Log.i(RtcActivity.TAG,"ScreenCapturerAndroid startCapture()");
         this.checkNotDisposed();
         this.width = width;
         this.height = height;
@@ -110,13 +128,19 @@ public class ScreenCapturerAndroid implements VideoCapturer, OnTextureFrameAvail
     }
 
     private void createVirtualDisplay() {
-        this.surfaceTextureHelper.getSurfaceTexture().setDefaultBufferSize(this.width, this.height);
-        this.virtualDisplay = this.mediaProjection.createVirtualDisplay("WebRTC_ScreenCapture", this.width, this.height, 400, 3, new Surface(this.surfaceTextureHelper.getSurfaceTexture()), (VirtualDisplay.Callback)null, (Handler)null);
+        Log.i(RtcActivity.TAG,"setDefaultBufferSize WIDTH :"+this.width);
+        Log.i(RtcActivity.TAG,"setDefaultBufferSize HEIGHT :"+this.height);
+        this.surfaceTextureHelper.getSurfaceTexture().setDefaultBufferSize(width, height);
+        this.virtualDisplay = this.mediaProjection.createVirtualDisplay("WebRTC_ScreenCapture", width, height, 240, 3, new Surface(this.surfaceTextureHelper.getSurfaceTexture()), (VirtualDisplay.Callback)null, (Handler)null);
     }
 
     public void onTextureFrameAvailable(int oesTextureId, float[] transformMatrix, long timestampNs) {
         ++this.numCapturedFrames;
-        this.capturerObserver.onTextureFrameCaptured(this.width, this.height, oesTextureId, transformMatrix, 0, timestampNs);
+//        Log.i(RtcActivity.TAG,"onTextureFrameAvailable WIDTH :"+this.width);
+//        Log.i(RtcActivity.TAG,"onTextureFrameAvailable HEIGHT :"+this.height);
+        //当传入奇数值， web页面端显示偶数值 例如传入267 561 但是页面 266 560 ，所以不用管
+
+        this.capturerObserver.onTextureFrameCaptured(width, height, oesTextureId, transformMatrix, 0, timestampNs);
     }
 
     public boolean isScreencast() {

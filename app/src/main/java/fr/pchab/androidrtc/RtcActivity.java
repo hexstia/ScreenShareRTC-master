@@ -22,16 +22,13 @@ import android.widget.Toast;
 
 import org.webrtc.ScreenCapturerAndroid;
 import org.webrtc.VideoCapturer;
-
-import static android.content.ContentValues.TAG;
-
 public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
-    private WebRtcClient mWebRtcClient;
+    private  WebRtcClient mWebRtcClient;
     private static final int CAPTURE_PERMISSION_REQUEST_CODE = 1;
     //    private EglBase rootEglBase;
     private static Intent mMediaProjectionPermissionResultData;
     private static int mMediaProjectionPermissionResultCode;
-
+    public final static String TAG = "RtcActivity";
     public static String STREAM_NAME_PREFIX = "android_device_stream";
     // List of mandatory application permissions.／
     private static final String[] MANDATORY_PERMISSIONS = {"android.permission.MODIFY_AUDIO_SETTINGS",
@@ -41,13 +38,26 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
 //    private SurfaceViewRenderer fullscreenRenderer;
     public static int sDeviceWidth;
     public static int sDeviceHeight;
-    public static final int SCREEN_RESOLUTION_SCALE = 2;
-    private Button btn;
+    public static final int SCREEN_RESOLUTION_SCALE = 4;
+    private Button btn,display,close,disconnect,connect;
     private EditText et;
+    private PeerConnectionClient.PeerConnectionParameters peerConnectionParameters;
+    private VideoCapturer videoCapturer;
+    private static RtcActivity thiz;
+
+    public static RtcActivity getThiz() {
+        return thiz;
+    }
+
+    public WebRtcClient getmWebRtcClient() {
+        return mWebRtcClient;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        thiz = this;
         getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
                         | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
@@ -60,11 +70,14 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         sDeviceWidth = metrics.widthPixels;
         sDeviceHeight = metrics.heightPixels;
         btn = findViewById(R.id.btn);
+        display = findViewById(R.id.display);
+        connect = findViewById(R.id.connect);
+        close = findViewById(R.id.close);
+        disconnect = findViewById(R.id.disconnect);
         et = findViewById(R.id.et);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                String  tmphost = et.getText().toString();
                 if(!tmphost.equals("")){
                     host = tmphost;
@@ -76,11 +89,35 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
                         return;
                     }
                 }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    startScreenCapture();
-                } else {
-                    init();
-                }
+                    Log.i(TAG,"startScreenCapture()");
+                    startScreenCapture();//创建录屏
+
+            }
+        });
+        connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                connect(); //建立连接
+            }
+        });
+        display.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //发送消息，使其用来视频流显示
+                   mWebRtcClient.socketstart("abcd");
+            }
+        });
+
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mWebRtcClient.onDestroy();
+            }
+        });
+        disconnect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
             }
         });
 //        pipRenderer = (SurfaceViewRenderer) findViewById(R.id.pip_video_view);
@@ -104,6 +141,7 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
         MediaProjectionManager mediaProjectionManager =
                 (MediaProjectionManager) getApplication().getSystemService(
                         Context.MEDIA_PROJECTION_SERVICE);
+        Log.i(TAG,"startActivityForResult()");
         startActivityForResult(
                 mediaProjectionManager.createScreenCaptureIntent(), CAPTURE_PERMISSION_REQUEST_CODE);
     }
@@ -125,25 +163,43 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG,"onActivityResult() before");
         if (requestCode != CAPTURE_PERMISSION_REQUEST_CODE)
             return;
         mMediaProjectionPermissionResultCode = resultCode;
         mMediaProjectionPermissionResultData = data;
+        Log.i(TAG,"onActivityResult()");
         init();
+//        finish();
     }
 
     private void init() {
-        PeerConnectionClient.PeerConnectionParameters peerConnectionParameters =
+        Log.i(TAG,"init()");
+        int tmpWidth  = sDeviceWidth / SCREEN_RESOLUTION_SCALE;
+        int tmpHeight = sDeviceHeight / SCREEN_RESOLUTION_SCALE;
+        tmpWidth &= ~7;
+        tmpHeight &= ~7;
+         peerConnectionParameters =
                 new PeerConnectionClient.PeerConnectionParameters(true, false,
-                        true, sDeviceWidth / SCREEN_RESOLUTION_SCALE, sDeviceHeight / SCREEN_RESOLUTION_SCALE, 0,
+                        true, tmpWidth, tmpHeight, 0,
                         0, "VP8",
                         true,
                         true,
                         0,
                         "OPUS", false, false, false, false, false, false, false, false, null);
 //        mWebRtcClient = new WebRtcClient(getApplicationContext(), this, pipRenderer, fullscreenRenderer, createScreenCapturer(), peerConnectionParameters);
-        mWebRtcClient = new WebRtcClient(getApplicationContext(), this, createScreenCapturer(), peerConnectionParameters);
+             videoCapturer  = createScreenCapturer();
     }
+    public void connect(){
+        /**
+         * 1. 创建socketio
+         * 2. 监听socketio
+         * 3. 连接socketio
+         * 4. ice服务
+         */
+        mWebRtcClient = new WebRtcClient(getApplicationContext(), this, videoCapturer, peerConnectionParameters);
+    }
+
 
     public void report(String info) {
         Log.e(TAG, info);
@@ -161,14 +217,17 @@ public class RtcActivity extends Activity implements WebRtcClient.RtcListener {
 
     @Override
     public void onDestroy() {
+        /*
         if (mWebRtcClient != null) {
-//            mWebRtcClient.onDestroy();
+            mWebRtcClient.onDestroy();
         }
+        */
         super.onDestroy();
     }
 
     @Override
     public void onReady(String callId) {
+        Log.i(TAG,"WebRtcClient start()");
         mWebRtcClient.start(STREAM_NAME_PREFIX);
     }
 
