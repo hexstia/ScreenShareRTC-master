@@ -4,41 +4,4 @@
     android:layout_height="match_parent"
     android:background="@color/translucent_background"
     android:orientation="vertical">
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:orientation="vertical">
-        <EditText
-            android:id="@+id/et"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:hint="例如:https://test.91lanjiang.com:3000/"/>
-        <Button
-            android:id="@+id/btn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="开始"/>
-        <Button
-            android:id="@+id/display"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="显示"/>
-        <Button
-            android:id="@+id/connect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="连接"/>
-        <Button
-            android:id="@+id/close"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="关闭"/>
-        <Button
-            android:id="@+id/disconnect"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="关闭连接"/>
-    </LinearLayout>
 </RelativeLayout>

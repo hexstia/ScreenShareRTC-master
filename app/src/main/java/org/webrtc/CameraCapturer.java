@@ -200,8 +200,8 @@ abstract class CameraCapturer implements CameraVideoCapturer {
     private boolean sessionOpening;
     private CameraSession currentSession;
     private String cameraName;
-    private int width;
-    private int height;
+    private long width;
+    private long height;
     private int framerate;
     private int openAttemptsRemaining;
     private CameraCapturer.SwitchState switchState;
@@ -255,7 +255,7 @@ abstract class CameraCapturer implements CameraVideoCapturer {
         this.cameraThreadHandler = surfaceTextureHelper == null ? null : surfaceTextureHelper.getHandler();
     }
 
-    public void startCapture(int width, int height, int framerate) {
+    public void startCapture(long width, long height, int framerate) {
         Logging.d("CameraCapturer", "startCapture: " + width + "x" + height + "@" + framerate);
         if (this.applicationContext == null) {
             throw new RuntimeException("CameraCapturer must be initialized before calling startCapture.");
@@ -280,7 +280,7 @@ abstract class CameraCapturer implements CameraVideoCapturer {
         this.uiThreadHandler.postDelayed(this.openCameraTimeoutRunnable, (long)(delayMs + 10000));
         this.cameraThreadHandler.postDelayed(new Runnable() {
             public void run() {
-                CameraCapturer.this.createCameraSession(CameraCapturer.this.createSessionCallback, CameraCapturer.this.cameraSessionEventsHandler, CameraCapturer.this.applicationContext, CameraCapturer.this.surfaceHelper, mediaRecorder, CameraCapturer.this.cameraName, CameraCapturer.this.width, CameraCapturer.this.height, CameraCapturer.this.framerate);
+                CameraCapturer.this.createCameraSession(CameraCapturer.this.createSessionCallback, CameraCapturer.this.cameraSessionEventsHandler, CameraCapturer.this.applicationContext, CameraCapturer.this.surfaceHelper, mediaRecorder, CameraCapturer.this.cameraName, (int)CameraCapturer.this.width,(int) CameraCapturer.this.height, CameraCapturer.this.framerate);
             }
         }, (long)delayMs);
     }

@@ -441,19 +441,20 @@ public class WebRtcClient {
     }
 
     private void initScreenCapturStream() {
+        Log.i(TAG,"startCapture()");
+        Log.i(TAG,"mPeerConnParams.videoWidth"+mPeerConnParams.videoWidth);
+        Log.i(TAG,"mPeerConnParams.videoHeight"+mPeerConnParams.videoHeight);
+        Log.i(TAG,"mPeerConnParams.videoFps"+mPeerConnParams.videoFps);
+        long width =  ((long)mPeerConnParams.videoWidth)<<40|((long)mPeerConnParams.contentWidth)<<20|mPeerConnParams.bufferWidth;
+        long height = ((long)mPeerConnParams.videoHeight)<<40|((long)mPeerConnParams.contentHeight)<<20|mPeerConnParams.bufferHeight;
         mLocalMediaStream = factory.createLocalMediaStream("ARDAMS");
         MediaConstraints videoConstraints = new MediaConstraints();
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxHeight", Integer.toString(mPeerConnParams.videoHeight)));
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxWidth", Integer.toString(mPeerConnParams.videoWidth)));
         videoConstraints.mandatory.add(new MediaConstraints.KeyValuePair("maxFrameRate", Integer.toString(mPeerConnParams.videoFps)));
-
 //        VideoCapturer capturer = createScreenCapturer();
         mVideoSource = factory.createVideoSource(videoCapturer);
-        Log.i(TAG,"startCapture()");
-        Log.i(TAG,"mPeerConnParams.videoWidth"+mPeerConnParams.videoWidth);
-        Log.i(TAG,"mPeerConnParams.videoHeight"+mPeerConnParams.videoHeight);
-        Log.i(TAG,"mPeerConnParams.videoFps"+mPeerConnParams.videoFps);
-        videoCapturer.startCapture(mPeerConnParams.videoWidth, mPeerConnParams.videoHeight, mPeerConnParams.videoFps);
+        videoCapturer.startCapture(width, height, mPeerConnParams.videoFps);
         VideoTrack localVideoTrack = factory.createVideoTrack(VIDEO_TRACK_ID, mVideoSource);
         localVideoTrack.setEnabled(true);
         mLocalMediaStream.addTrack(factory.createVideoTrack("ARDAMSv0", mVideoSource));

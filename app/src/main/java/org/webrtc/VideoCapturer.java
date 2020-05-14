@@ -10,7 +10,7 @@ import android.content.Context;
 public interface VideoCapturer {
     void initialize(SurfaceTextureHelper var1, Context var2, VideoCapturer.CapturerObserver var3);
 
-    void startCapture(int var1, int var2, int var3);
+    void startCapture(long var1, long var2, int var3);
 
     void stopCapture() throws InterruptedException;
 

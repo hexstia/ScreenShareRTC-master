@@ -56,7 +56,7 @@ public class FileVideoCapturer implements VideoCapturer {
         this.capturerObserver = capturerObserver;
     }
 
-    public void startCapture(int width, int height, int framerate) {
+    public void startCapture(long width, long height, int framerate) {
         this.timer.schedule(this.tickTask, 0L, (long)(1000 / framerate));
     }
 

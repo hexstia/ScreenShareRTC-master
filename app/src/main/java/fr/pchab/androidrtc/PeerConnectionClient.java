@@ -57,6 +57,10 @@ public class PeerConnectionClient {
         public final boolean tracing;
         public final int videoWidth;
         public final int videoHeight;
+        public  int contentWidth;
+        public  int contentHeight;
+        public int bufferWidth;
+        public int bufferHeight;
         public final int videoFps;
         public final int videoMaxBitrate;
         public final String videoCodec;
@@ -98,6 +102,39 @@ public class PeerConnectionClient {
             this.tracing = tracing;
             this.videoWidth = videoWidth;
             this.videoHeight = videoHeight;
+            this.videoFps = videoFps;
+            this.videoMaxBitrate = videoMaxBitrate;
+            this.videoCodec = videoCodec;
+            this.videoFlexfecEnabled = videoFlexfecEnabled;
+            this.videoCodecHwAcceleration = videoCodecHwAcceleration;
+            this.audioStartBitrate = audioStartBitrate;
+            this.audioCodec = audioCodec;
+            this.noAudioProcessing = noAudioProcessing;
+            this.aecDump = aecDump;
+            this.useOpenSLES = useOpenSLES;
+            this.disableBuiltInAEC = disableBuiltInAEC;
+            this.disableBuiltInAGC = disableBuiltInAGC;
+            this.disableBuiltInNS = disableBuiltInNS;
+            this.enableLevelControl = enableLevelControl;
+            this.disableWebRtcAGCAndHPF = disableWebRtcAGCAndHPF;
+            this.dataChannelParameters = dataChannelParameters;
+        }
+        public PeerConnectionParameters(boolean videoCallEnabled, boolean loopback, boolean tracing,
+                                        int videoWidth, int videoHeight,int contentWidth,int contentHeight,int bufferWidth,int bufferHeight, int videoFps, int videoMaxBitrate, String videoCodec,
+                                        boolean videoCodecHwAcceleration, boolean videoFlexfecEnabled, int audioStartBitrate,
+                                        String audioCodec, boolean noAudioProcessing, boolean aecDump, boolean useOpenSLES,
+                                        boolean disableBuiltInAEC, boolean disableBuiltInAGC, boolean disableBuiltInNS,
+                                        boolean enableLevelControl, boolean disableWebRtcAGCAndHPF,
+                                        DataChannelParameters dataChannelParameters) {
+            this.videoCallEnabled = videoCallEnabled;
+            this.loopback = loopback;
+            this.tracing = tracing;
+            this.videoWidth = videoWidth;
+            this.videoHeight = videoHeight;
+            this.contentWidth = contentWidth;
+            this.contentHeight = contentHeight;
+            this.bufferWidth = bufferWidth;
+            this.bufferHeight = bufferHeight;
             this.videoFps = videoFps;
             this.videoMaxBitrate = videoMaxBitrate;
             this.videoCodec = videoCodec;
